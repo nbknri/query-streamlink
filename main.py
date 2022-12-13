@@ -1,110 +1,66 @@
 #!/usr/bin/env python
-from flask import Flask, request, redirect, send_file
+from flask import Flask, request, redirect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import validators
-from api import Fetch
+from api import get_streams
 
 app = Flask(__name__)
 
 limiter = Limiter(
     app,
-    key_func=get_remote_address
+    key_func=get_remote_address,
+    default_limits=["100 per hour"],
+    storage_uri="memory://",
 )
 
 
-def make_m3u8(output, query):
-    """Creates m3u file and string
-    (output: dict, query: str)
-    """
-    speeds = {
-        1000: 5_000_000,
-        700: 2_500_000,
-        400: 1_100_000,
-        300: 700_000,
-        200: 400_000,
-        100: 200_000,
-    }
-    link_str = "#EXTM3U\n"
-    for res in output:
-        r = res.split("p")[0]
-        if type(r) == int:
-            for speed in speeds:
-                if r >= speed:
-                    bandwidth = speeds[speed]
-                    break
-        else:
-            bandwidth = 100_000
-        title = (
-            f"#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH={bandwidth},NAME={res}\n"
-        )
-        link = f"{output[res]}\n"
-        link_str += title + link
-    with open("stream.m3u8", "w") as f:
-        f.write(link_str)
-    return link_str
-
-
-def api_formated(output, api, query=""):
-    """Formats the output to json if the endpoint is /api"""
-    if api:
-        if type(output) == dict:
-            return output
-        return {"Error": output}
-    if type(output) == dict:
-        if len(output) == 1:
-            return next(iter(output.values()))
-        return make_m3u8(output, query)
-    return output
-
-
-def query_hanlder(args, api):
+# Reads the URL parameters and redirects to Streamlink.
+def query_handler(args):
     """Checks and tests arguments before serving request"""
-    if args:
-        query = args.get("streaming-ip")
-        if not query:
-            message = "No streaming IP found. Reason: streaming-ip string is empty"
-            return api_formated(message, api)
+    if not args.get("streaming-ip"):
+        return "You didn't give any URL."
 
-        valid = validators.url(query)
-        if not valid:
-            message = "The URL you've entered is not valid."
-            return api_formated(message, api)
-
-        quality = args.get("quality")
-        stream_obj = Fetch(query, quality)
-        streams = stream_obj.filtered_streams()
-        return api_formated(streams, api, query)
+    # for dacast, be warned we have MULTIPLE parameters. Get it if exists
+    if args.get("provider"):
+        valid = validators.url(args.get("streaming-ip"))
+        url = args.get("streaming-ip") + "&provider=" + args.get('provider')
+        return get_streams(url) if valid else "The URL you've entered is not valid."
     else:
-        message = "No queries provided. Nothing to do."
-        return api_formated(message, api)
+        valid = validators.url(args.get("streaming-ip"))
+        return get_streams(args.get("streaming-ip")) if valid else "The URL you've entered is not valid."
 
 
+# Presentation page
 @app.route("/", methods=['GET'])
 def index():
-    return "Online"
+    return "This program permits you to get direct access to streams by using Streamlink.\r\nIf you have a link that " \
+           "needs to be treated, from this webpage, add /iptv-query?streaming-ip= *your URL*.\r\nNote that it will " \
+           "work " \
+           "only on Streamlink-supported websites.\r\nEnjoy ! LaneSh4d0w. Special thanks to Keystroke for the API " \
+           "usage. "
 
 
+# iptv-query route -> gives link to Streamlink, link is analyzed
+# for correct plugin routing, and redirects (or shows) to the stream link.
 @app.route("/iptv-query", methods=['GET'])
-@limiter.limit("30 per minute")
-@limiter.limit("1 per second")
+@limiter.limit("20/minute")
+@limiter.limit("1/second")
 def home():
-    response = query_hanlder(request.args, False)
-    if response.startswith("#EXTM3U"):
-        return send_file("stream.m3u8")
-    elif response.startswith("http"):
-        return redirect(response)
-    else:
-        return redirect(
-                "https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8",
-                code=302)  
+    response = query_handler(request.args)
+    valid2 = validators.url(response)
+    if response is None or not valid2:
+        return response
 
-@app.route("/api", methods=['GET'])
-@limiter.limit("30 per minute")
-@limiter.limit("1 per second")
-def api():
-    return query_hanlder(request.args, True)
+    return response if request.args.get("noredirect") == "yes" else redirect(response)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8888)
+# Rate limiting system.
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return f'{e}. To ensure everyone gets a correct access to the program, we are rate-limiting the server.'
+
+
+# change to your likings, params are "ip", "port", "threaded"
+if __name__ == '__main__':
+    app.run(threaded=False, port=5000)

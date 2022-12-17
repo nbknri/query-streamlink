@@ -2,7 +2,7 @@ import streamlink
 from streamlink import NoPluginError, PluginError
 from streamlink.plugins.twitch import TwitchHLSStream
 from streamlink.stream import DASHStream, HLSStream
-from flask import Flask,redirect
+from flask import Flask, request, redirect
 
 
 def get_streams(query):
@@ -13,7 +13,9 @@ def get_streams(query):
     try:
         streams = list(streamlink.streams(query).items())
         if not streams:
-            return redirect("https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8", code=200)
+            r = requests.get("https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8")
+            print(r.url)
+            
         for quality, link in streams:
             # Some DASH streams have got some interesting issues, hence we need to fix it directly.
             # All HLS links should work with adaptive.

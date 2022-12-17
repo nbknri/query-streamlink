@@ -2,7 +2,7 @@ import streamlink
 from streamlink import NoPluginError, PluginError
 from streamlink.plugins.twitch import TwitchHLSStream
 from streamlink.stream import DASHStream, HLSStream
-import redirect
+from streamlink import redirect
 
 
 def get_streams(query):

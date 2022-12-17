@@ -13,7 +13,8 @@ def get_streams(query):
     try:
         streams = list(streamlink.streams(query).items())
         if not streams:
-            return redirect(url_for("https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8"))
+            return redirect(url_for("https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8",
+                code=302))
                         
         for quality, link in streams:
             # Some DASH streams have got some interesting issues, hence we need to fix it directly.

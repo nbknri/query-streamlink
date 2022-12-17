@@ -1,5 +1,5 @@
-from flask import Flask, redirect
 import streamlink
+import streamlink import streamlink, redirect
 from streamlink import NoPluginError, PluginError
 from streamlink.plugins.twitch import TwitchHLSStream
 from streamlink.stream import DASHStream, HLSStream

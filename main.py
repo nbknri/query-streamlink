@@ -28,7 +28,9 @@ def query_handler(args):
         return get_streams(url) if valid else "The URL you've entered is not valid."
     else:
         valid = validators.url(args.get("streaming-ip"))
-        return get_streams(args.get("streaming-ip")) if valid else "The URL you've entered is not valid."
+        return get_streams(args.get("streaming-ip")) if valid else return redirect(
+                "https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8",
+                code=302)
 
 
 # Presentation page

@@ -1,5 +1,5 @@
 import streamlink
-from streamlink import NoPluginError, PluginError
+from streamlink import NoPluginError, PluginError, redirect
 from streamlink.plugins.twitch import TwitchHLSStream
 from streamlink.stream import DASHStream, HLSStream
 

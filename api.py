@@ -2,7 +2,6 @@ import streamlink
 from streamlink import NoPluginError, PluginError
 from streamlink.plugins.twitch import TwitchHLSStream
 from streamlink.stream import DASHStream, HLSStream
-from flask import Flask, redirect
 
 
 def get_streams(query):
@@ -14,7 +13,6 @@ def get_streams(query):
         streams = list(streamlink.streams(query).items())
         if not streams:
             return "No streams found."
-                        
         for quality, link in streams:
             # Some DASH streams have got some interesting issues, hence we need to fix it directly.
             # All HLS links should work with adaptive.

@@ -49,12 +49,7 @@ def home():
         return response
 
     return response if request.args.get("noredirect") == "yes" else redirect(response)
-
-else:
-        return redirect(
-                "https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8",
-                code=302)
-    
+   
 
 # Rate limiting system.
 @app.errorhandler(429)

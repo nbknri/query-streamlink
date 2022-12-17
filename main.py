@@ -34,11 +34,7 @@ def query_handler(args):
 # Presentation page
 @app.route("/", methods=['GET'])
 def index():
-    return "This program permits you to get direct access to streams by using Streamlink.\r\nIf you have a link that " \
-           "needs to be treated, from this webpage, add /iptv-query?streaming-ip= *your URL*.\r\nNote that it will " \
-           "work " \
-           "only on Streamlink-supported websites.\r\nEnjoy ! LaneSh4d0w. Special thanks to Keystroke for the API " \
-           "usage. "
+    return "Online"
 
 
 # iptv-query route -> gives link to Streamlink, link is analyzed
@@ -52,7 +48,11 @@ def home():
     if response is None or not valid2:
         return response
 
-    return response if request.args.get("noredirect") == "yes" else redirect("https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8",
+    return response if request.args.get("noredirect") == "yes" else redirect(response)
+
+else:
+        return redirect(
+                "https://raw.githubusercontent.com/nbknri/YouTube_to_m3u/main/assets/nbknri.m3u8",
                 code=302)
     
 

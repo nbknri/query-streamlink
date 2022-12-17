@@ -1,3 +1,4 @@
+import redirect
 import streamlink
 from streamlink import NoPluginError, PluginError, redirect
 from streamlink.plugins.twitch import TwitchHLSStream
